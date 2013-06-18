@@ -175,7 +175,8 @@ function imagefield_crop_field_widget_form(&$form, &$form_state, $field, $instan
 
     //dpm($elements[$delta]);
     // Register our value callback
-    $elements[$delta]['#file_value_callbacks'][] = 'imagefield_crop_widget_value';
+    $elements[$delta]['#file_value_callbacks'] =
+      array_merge(array('imagefield_crop_widget_value'), element_info_property('managed_file', '#file_value_callbacks', array()));
 
   }
   return $elements;
@@ -487,8 +488,8 @@ function theme_imagefield_crop_widget($variables) {
     $output .= '<div class="description">' . $element['cropbox']['#description'] . '</div>';
     $output .= '</div>';
   }
-  $output .= '</div>';
   $output .= drupal_render_children($element);
+  $output .= '</div>';
   return $output;
 }
 
