@@ -210,8 +210,8 @@ function imagefield_crop_widget_process($element, &$form_state, $form) {
       '#markup' => theme('image', array(
         'path' => $element['#file']->uri,
         'getsize' => FALSE,
-        'attributes' => array('class' => 'preview-existing')),
-      ),
+        'attributes' => array('class' => 'preview-existing'),
+      )),
     );
     $element['cropbox'] = array(
       '#markup' => theme('image', array(
