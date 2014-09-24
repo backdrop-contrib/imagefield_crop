@@ -443,10 +443,6 @@ function imagefield_crop_theme() {
   );
 }
 
-/*********************/
-/* Internal functions */
-/*********************/
-
 /**
  * Crop the image and resize it
  */
