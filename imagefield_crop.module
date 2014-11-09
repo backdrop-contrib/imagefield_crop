@@ -175,6 +175,29 @@ function imagefield_crop_field_widget_form(&$form, &$form_state, $field, $instan
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ * Provides option to disable the max width fix.
+ */
+function imagefield_crop_form_system_themes_admin_form_alter(&$form, &$form_state, $form_id) {
+  $form['admin_theme']['imagefield_crop_max_width_fix'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use the max-width fix for imagefield_crop'),
+    '#default_value' => variable_get('imagefield_crop_max_width_fix', TRUE),
+  );
+  $form['#submit'][] = 'imagefield_crop_form_system_themes_admin_form_alter_submit';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() submit handler.
+ * Provides option to disable the max width fix.
+ */
+function imagefield_crop_form_system_themes_admin_form_alter_submit($form, &$form_state) {
+  $imagefield_crop_max_width_fix = isset($form_state['values']['imagefield_crop_max_width_fix']) ?
+    $form_state['values']['imagefield_crop_max_width_fix'] : TRUE;
+  variable_set('imagefield_crop_max_width_fix', $imagefield_crop_max_width_fix);
+}
+
+/**
  * An element #process callback for the imagefield_crop field type.
  */
 function imagefield_crop_widget_process($element, &$form_state, $form) {
@@ -192,6 +215,11 @@ function imagefield_crop_widget_process($element, &$form_state, $form) {
   // We must define Drupal.behaviors for ahah to work, even if there is no file
   $element['#attached']['js'][] = "$path/imagefield_crop.js";
   $element['#attached']['css'][] = "$path/Jcrop/css/jquery.Jcrop.css";
+
+  // Made a configuration since this is something that your local theme might not need.
+  if (variable_get('imagefield_crop_max_width_fix', TRUE)) {
+    $element['#attached']['css'][] = $path . '/css/imagefield-zenfix.css';
+  }
 
   if ($element['#file']) {
     $file_to_crop = _imagefield_crop_file_to_crop($element['#file']->fid);
