@@ -509,6 +509,14 @@ function imagefield_crop_theme() {
 function _imagefield_crop_resize($src, $crop = NULL, $scale = NULL, $dst = NULL) {
   $image = image_load($src);
   if ($image) {
+    $data = array(
+      'image' => &$image,
+      'crop' => &$crop,
+      'scale' => &$scale,
+      'src' => &$src,
+      'dst' => &$dst,
+    );
+    drupal_alter('imagefield_crop_resize', $data);
     $result = TRUE;
     if ($crop) {
       $result = $result && image_crop($image, $crop['x'], $crop['y'], $crop['width'], $crop['height']);
