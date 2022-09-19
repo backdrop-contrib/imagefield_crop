@@ -558,3 +558,107 @@ function _imagefield_crop_file_to_crop($fid) {
   }
   return file_load($fid);
 }
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function imagefield_crop_field_formatter_info() {
+  $formatters = array(
+    'image_uncropped' => array(
+      'label' => t('Image (uncropped)'),
+      'field types' => array('image'),
+      'settings' => array('image_style' => '', 'image_link' => ''),
+    ),
+  );
+
+  return $formatters;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ *
+ * Uses the standard image field settings form for configurating the
+ * 'imagefield_crop' formatter.
+ */
+function imagefield_crop_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  return image_field_formatter_settings_form($field, $instance, $view_mode, $form, $form_state);
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function imagefield_crop_field_formatter_settings_summary($field, $instance, $view_mode) {
+  return image_field_formatter_settings_summary($field, $instance, $view_mode);
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function imagefield_crop_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  // Check if the formatter involves a link.
+  if ($display['settings']['image_link'] == 'content') {
+    $uri = entity_uri($entity_type, $entity);
+  }
+  elseif ($display['settings']['image_link'] == 'file') {
+    $link_file = TRUE;
+  }
+
+  // Set the URI or the file array to the uncropped/original image file.
+  foreach ($items as $delta => $item) {
+    $uncropped_file = _imagefield_crop_file_to_crop($item['fid']);
+    if (isset($link_file)) {
+      $uri = array(
+        'path' => file_create_url($uncropped_file['uri']),
+        'options' => array(),
+      );
+    }
+    $element[$delta] = array(
+      '#theme' => 'image_formatter',
+      '#item' => (array) $uncropped_file,
+      '#image_style' => $display['settings']['image_style'],
+      '#path' => isset($uri) ? $uri : '',
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Hides the 'image_uncropped' formatter for fields that are not using the
+ * imagefield_crop widget.
+ */
+function imagefield_crop_form_field_ui_display_overview_form_alter(&$form, &$form_state) {
+  foreach (element_children($form['fields']) as $field_name) {
+    $field = field_info_field($field_name);
+    if ($field['type'] === 'image') {
+      $entity_type = $form['#entity_type'];
+      $bundle = $form['#bundle'];
+      $field_instance = field_info_instance($entity_type, $field_name, $bundle);
+      if ($field_instance['widget']['type'] !== 'imagefield_crop_widget' && isset($form['fields'][$field_name]['format']['type']['#options']['image_uncropped'])) {
+        unset($form['fields'][$field_name]['format']['type']['#options']['image_uncropped']);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Hides the 'image_uncropped' formatter in the views field configuration.
+ * The original/uncropped image should be added as a relationship.
+ */
+function imagefield_crop_form_views_ui_config_item_form_alter(&$form, &$form_state) {
+  $handler = $form_state['handler'];
+  if (get_class($handler) === 'views_handler_field_field') {
+    $field = $handler->field_info;
+    if ($field['type'] === 'image') {
+      if (isset($form['options']['type']['#options']['image_uncropped'])) {
+        unset($form['options']['type']['#options']['image_uncropped']);
+      }
+    }
+  }
+}
