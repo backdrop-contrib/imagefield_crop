@@ -436,7 +436,7 @@ function imagefield_crop_widget_delete($form, &$form_state) {
   $parents = array_slice($form_state['triggering_element']['#array_parents'], 0, -1);
   $element = drupal_array_get_nested_value($form_state['values'], $parents);
   $orig = _imagefield_crop_file_to_crop($element['fid']);
-  if ($orig->fid != $element['fid']) {
+  if (!empty($orig) && !empty($element) && $orig->fid != $element['fid']) {
     file_usage_delete($orig, 'imagefield_crop');
     file_delete($orig);
     db_delete('imagefield_crop')->condition('fid', $element['fid'])->execute();
