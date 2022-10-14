@@ -35,7 +35,7 @@ function imagefield_crop_field_widget_info() {
  */
 function imagefield_crop_file_settings($file) {
   $fid = empty($file->fid) ? 0 : $file->fid;
-  $settings = &drupal_static(__FUNCTION__, array());
+  $settings = &backdrop_static(__FUNCTION__, array());
   if (isset($settings[$fid])) {
     return $settings[$fid];
   }
@@ -67,7 +67,7 @@ function imagefield_crop_file_settings($file) {
  */
 function imagefield_crop_file_settings_save($crop_settings) {
   $fid = $crop_settings['fid'];
-  $settings = &drupal_static('imagefield_crop_file_settings', array());
+  $settings = &backdrop_static('imagefield_crop_file_settings', array());
   $settings[$fid] = $crop_settings;
 
   unset($crop_settings['fid']);
@@ -177,7 +177,7 @@ function _imagefield_crop_widget_resolution_validate($element, &$form_state) {
 function _imagefield_crop_widget_enforce_ratio_validate($element, &$form_state) {
   $settings = $form_state['values']['instance']['widget']['settings'];
   if (!empty($settings['resolution']) && empty($element['#value'])) {
-    drupal_set_message(t('Output resolution is defined, but not enforced. Final images might be distroted'));
+    backdrop_set_message(t('Output resolution is defined, but not enforced. Final images might be distroted'));
   }
 }
 
@@ -263,7 +263,7 @@ function imagefield_crop_widget_process($element, &$form_state, $form) {
   $widget_settings = $instance['widget']['settings'];
   $element['#theme'] = 'imagefield_crop_widget';
 
-  $path = drupal_get_path('module', 'imagefield_crop');
+  $path = backdrop_get_path('module', 'imagefield_crop');
   $element['#attached']['js'][] = "$path/Jcrop/js/jquery.Jcrop.js";
   // We must define Drupal.behaviors for ahah to work, even if there is no file.
   $element['#attached']['js'][] = "$path/imagefield_crop.js";
@@ -364,13 +364,13 @@ function imagefield_crop_widget_preview_process($element, &$form_state, $form) {
   }
   // The widget belongs to the parent, so we got to find it first.
   $parents = array_slice($element['#array_parents'], 0, -1);
-  $parent = drupal_array_get_nested_value($form, $parents);
+  $parent = backdrop_array_get_nested_value($form, $parents);
   $instance = field_widget_instance($parent, $form_state);
   list($width, $height) = !empty($instance['widget']['settings']['resolution'])
     ? explode('x', $instance['widget']['settings']['resolution'])
     : array(0, 0);
 
-  $image_info = image_get_info(drupal_realpath($file->uri));
+  $image_info = image_get_info(backdrop_realpath($file->uri));
   $settings = array(
     $parent['#id'] => array(
       'preview' => array(
@@ -421,7 +421,7 @@ function imagefield_crop_widget_value(&$element, &$input, $form_state) {
       $orig = clone $src;
       $orig->fid = 0;
       $orig->uri = $orig_uri;
-      $orig->filename = drupal_basename($orig_uri);
+      $orig->filename = backdrop_basename($orig_uri);
       $orig->status = 1;
       $orig = file_save($orig);
       file_usage_add($orig, 'imagefield_crop', 'file', $src->fid);
@@ -432,7 +432,7 @@ function imagefield_crop_widget_value(&$element, &$input, $form_state) {
     // $src->imagefield_crop = array('crop' => $crop);
     // file_save($src);
 
-    if (_imagefield_crop_resize(drupal_realpath($file_to_crop->uri), $crop, $scale, drupal_realpath($src->uri))) {
+    if (_imagefield_crop_resize(backdrop_realpath($file_to_crop->uri), $crop, $scale, backdrop_realpath($src->uri))) {
       // Insert crop info for this image in imagefield_crop_info variable.
       $crop['fid'] = $src->fid;
       unset($crop['changed']);
@@ -446,7 +446,7 @@ function imagefield_crop_widget_value(&$element, &$input, $form_state) {
 
 function imagefield_crop_widget_delete($form, &$form_state) {
   $parents = array_slice($form_state['triggering_element']['#array_parents'], 0, -1);
-  $element = drupal_array_get_nested_value($form_state['values'], $parents);
+  $element = backdrop_array_get_nested_value($form_state['values'], $parents);
   $orig = _imagefield_crop_file_to_crop($element['fid']);
   if (!empty($orig) && !empty($element) && $orig->fid != $element['fid']) {
     file_usage_delete($orig, 'imagefield_crop');
@@ -536,7 +536,7 @@ function _imagefield_crop_resize($src, $crop = NULL, $scale = NULL, $dst = NULL)
       'src' => &$src,
       'dst' => &$dst,
     );
-    drupal_alter('imagefield_crop_resize', $data);
+    backdrop_alter('imagefield_crop_resize', $data);
     $result = TRUE;
     if ($crop) {
       $result = $result && image_crop($image, $crop['x'], $crop['y'], $crop['width'], $crop['height']);
