@@ -5,7 +5,7 @@
  *
  * JS for cropping image widget
  */
-Drupal.behaviors.imagefield_crop = {
+Backdrop.behaviors.imagefield_crop = {
   attach: function (context, settings) {
     // wait till 'fadeIn' effect ends (defined in filefield_widget.inc)
     setTimeout(attachJcrop, 1000, context);
@@ -66,7 +66,7 @@ Drupal.behaviors.imagefield_crop = {
           aspectRatio: settings.imagefield_crop[id].box.ratio,
           boxWidth: settings.imagefield_crop[id].box.box_width,
           boxHeight: settings.imagefield_crop[id].box.box_height,
-          minSize: [Drupal.settings.imagefield_crop[id].minimum.width, Drupal.settings.imagefield_crop[id].minimum.height],
+          minSize: [Backdrop.settings.imagefield_crop[id].minimum.width, Backdrop.settings.imagefield_crop[id].minimum.height],
           trueSize: [settings.imagefield_crop[id].preview.orig_width,settings.imagefield_crop[id].preview.orig_height],
           /*
            * Setting the select here calls onChange event, and we lose the original image visibility
