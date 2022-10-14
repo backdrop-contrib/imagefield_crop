@@ -1,10 +1,12 @@
 <?php
-
 /**
  * @file
  * Themeable functions for imagefield_crop module.
  */
 
+/**
+ * Theme function: outputs field widget markup.
+ */
 function theme_imagefield_crop_widget($variables) {
   $element = $variables['element'];
 
@@ -22,8 +24,8 @@ function theme_imagefield_crop_widget($variables) {
     $element['preview']['#attributes']['class'][] = 'form-item';
     $element['preview']['#attributes']['class'][] = 'imagefield-crop-preview';
 
-    $output .= '<div ' . drupal_attributes($element['preview']['#attributes']) . '>';
-    $output .= drupal_render($element['preview']);
+    $output .= '<div ' . backdrop_attributes($element['preview']['#attributes']) . '>';
+    $output .= backdrop_render($element['preview']);
     $output .= '<div class="description">' . $element['preview']['#description'] . '</div>';
     $output .= '</div>';
   }
@@ -31,16 +33,19 @@ function theme_imagefield_crop_widget($variables) {
     $element['cropbox']['#attributes']['class'][] = 'form-item';
     $element['cropbox']['#attributes']['class'][] = 'imagefield-crop-cropbox';
 
-    $output .= '<div ' . drupal_attributes($element['cropbox']['#attributes']) . '>';
-    $output .= drupal_render($element['cropbox']);
+    $output .= '<div ' . backdrop_attributes($element['cropbox']['#attributes']) . '>';
+    $output .= backdrop_render($element['cropbox']);
     $output .= '<div class="description">' . $element['cropbox']['#description'] . '</div>';
     $output .= '</div>';
   }
-  $output .= drupal_render_children($element);
+  $output .= backdrop_render_children($element);
 
-  return '<div ' . drupal_attributes($wrapper_attributes) . '>' . $output . '</div>';
+  return '<div ' . backdrop_attributes($wrapper_attributes) . '>' . $output . '</div>';
 }
 
+/**
+ * Theme function: outputs image preview.
+ */
 function theme_imagefield_crop_preview($variables) {
   $info = $variables['element']['#imagefield_crop'];
   $output = $variables['element']['#markup'];
@@ -49,5 +54,5 @@ function theme_imagefield_crop_preview($variables) {
     'alt' => 'jcrop-preview',
     'attributes' => array('class' => 'jcrop-preview', 'style' => 'display:none'),
   ));
-  return '<div class="jcrop-preview-wrapper" style="width:' . $info['#width'] . 'px;height:' . $info['#height'] . 'px;overflow:hidden;">' . $output . '</div>';
+  return '<div class="jcrop-preview-wrapper" style="width:' . $info['#width'] . 'px; height:' . $info['#height'] . 'px; overflow:hidden;">' . $output . '</div>';
 }
