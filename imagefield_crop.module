@@ -285,14 +285,9 @@ function imagefield_crop_widget_process($element, &$form_state, $form) {
   $element['#theme'] = 'imagefield_crop_widget';
 
   $path = backdrop_get_path('module', 'imagefield_crop');
-  $element['#attached']['js'][] = $path . '/Jcrop/js/jquery.Jcrop.js';
+  $element['#attached']['js'][] = $path . '/libraries/Jcrop/js/jquery.Jcrop.js';
   $element['#attached']['js'][] = $path . '/js/imagefield_crop.js';
-  $element['#attached']['css'][] = $path . '/Jcrop/css/jquery.Jcrop.css';
-
-  // Made a configuration since this is something that your local theme might not need.
-  if (variable_get('imagefield_crop_max_width_fix', TRUE)) {
-    $element['#attached']['css'][] = $path . '/css/imagefield-zenfix.css';
-  }
+  $element['#attached']['css'][] = $path . '/libraries/Jcrop/css/jquery.Jcrop.css';
 
   if ($element['#file']) {
     $file_to_crop = _imagefield_crop_file_to_crop($element['#file']->fid);
