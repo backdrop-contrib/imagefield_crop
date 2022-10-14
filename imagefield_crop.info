@@ -2,4 +2,10 @@ type = module
 name = Image crop
 description = Add cropping ability to images using javascript
 backdrop = 1.x
+
 dependencies[] = image
+
+tags[] = Content
+tags[] = Fields
+tags[] = Media
+tags[] = Images
