@@ -59,6 +59,7 @@ function imagefield_crop_file_settings($file) {
       'changed' => 0,
     );
   }
+
   return $settings[$fid];
 }
 
@@ -88,24 +89,24 @@ function imagefield_crop_field_widget_settings_form($field, $instance) {
   // Use the image widget settings form.
   $form = image_field_widget_settings_form($field, $instance);
 
-  $form['collapsible'] = array(
-    '#type' => 'radios',
-    '#title' => t('Collapsible behavior'),
-    '#options' => array(
-      1 => t('None.'),
-      2 => t('Collapsible, expanded by default.'),
-      3 => t('Collapsible, collapsed by default.'),
-    ),
-    '#default_value' => $settings['collapsible'],
+  /* @todo refactor for addtional depth. This is better.
+  $form['imagefield_crop'] = array(
+    '#title' => t('Image cropping'),
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
   );
+  */
 
-  // Resolution settings.
+  // size settings.
   $resolution = explode('x', $settings['resolution']) + array('', '');
   $form['resolution'] = array(
-    '#title' => t('The resolution to crop the image onto'),
+    '#type' => 'container',
+    '#title' => t('Output size of the image (after cropping)'),
     '#element_validate' => array('_image_field_resolution_validate', '_imagefield_crop_widget_resolution_validate'),
     '#theme_wrappers' => array('form_element'),
-    '#description' => t('The output resolution of the cropped image, expressed as WIDTHxHEIGHT (e.g. 640x480). Set to 0 not to rescale after cropping. Note: output resolution must be defined in order to present a dynamic preview.'),
+    '#description' => t('Set to <em>0 x 0</em> to prevent rescale after cropping. NOTE: output size must be defined in order to present a dynamic preview.'),
+    '#field_prefix' => '<div class="container-inline">',
+    '#field_suffix' => '</div>',
   );
   $form['resolution']['x'] = array(
     '#type' => 'textfield',
@@ -113,7 +114,6 @@ function imagefield_crop_field_widget_settings_form($field, $instance) {
     '#size' => 5,
     '#maxlength' => 5,
     '#field_suffix' => ' x ',
-    '#theme_wrappers' => array(),
   );
   $form['resolution']['y'] = array(
     '#type' => 'textfield',
@@ -121,30 +121,31 @@ function imagefield_crop_field_widget_settings_form($field, $instance) {
     '#size' => 5,
     '#maxlength' => 5,
     '#field_suffix' => ' ' . t('pixels'),
-    '#theme_wrappers' => array(),
   );
   $form['enforce_ratio'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enforce crop box ratio'),
+    '#title' => t('Enforce the aspect ratio of the cropped image'),
     '#default_value' => $settings['enforce_ratio'],
-    '#description' => t('Check this to force the ratio of the output on the crop box. NOTE: If you leave this unchecked but enforce an output resolution, the final image might be distorted'),
+    '#description' => t('NOTE: If you leave this unchecked but enforce a minimum crop size, the final image might be distorted.'),
     '#element_validate' => array('_imagefield_crop_widget_enforce_ratio_validate'),
   );
   $form['enforce_minimum'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enforce minimum crop size based on the output size'),
+    '#title' => t('Enforce minimum crop size (equal to the output size)'),
     '#default_value' => $settings['enforce_minimum'],
-    '#description' => t('Check this to force a minimum cropping selection equal to the output size. NOTE: If you leave this unchecked you might get zoomed pixels if the cropping area is smaller than the output resolution.'),
+    '#description' => t('NOTE: If you leave this unchecked you might get zoomed pixels if the cropping area is smaller than the output size.'),
     '#element_validate' => array('_imagefield_crop_widget_enforce_minimum_validate'),
   );
 
   // Crop area settings.
   $croparea = explode('x', $settings['croparea']) + array('', '');
   $form['croparea'] = array(
-    '#title' => t('The resolution of the cropping area'),
+    '#title' => t('Size of the area used for cropping the image.'),
     '#element_validate' => array('_imagefield_crop_widget_croparea_validate'),
     '#theme_wrappers' => array('form_element'),
-    '#description' => t('The resolution of the area used for the cropping of the image. Image will displayed at this resolution for cropping. Use WIDTHxHEIGHT format, empty or zero values are permitted, e.g. 500x will limit crop box to 500 pixels width.'),
+    '#description' => t('The original image will displayed at this size for cropping. Empty or zero values are permitted, e.g. <em>500 x 0</em> will limit the crop area to 500 pixels width.'),
+    '#field_prefix' => '<div class="container-inline">',
+    '#field_suffix' => '</div>',
   );
   $form['croparea']['x'] = array(
     '#type' => 'textfield',
@@ -152,7 +153,6 @@ function imagefield_crop_field_widget_settings_form($field, $instance) {
     '#size' => 5,
     '#maxlength' => 5,
     '#field_suffix' => ' x ',
-    '#theme_wrappers' => array(),
   );
   $form['croparea']['y'] = array(
     '#type' => 'textfield',
@@ -160,27 +160,46 @@ function imagefield_crop_field_widget_settings_form($field, $instance) {
     '#size' => 5,
     '#maxlength' => 5,
     '#field_suffix' => ' ' . t('pixels'),
-    '#theme_wrappers' => array(),
+  );
+
+  $form['collapsible'] = array(
+    '#type' => 'radios',
+    '#title' => t('Collapsible cropping area behavior'),
+    '#options' => array(
+      1 => t('Not collapsible.'),
+      2 => t('Collapsible, expanded by default.'),
+      3 => t('Collapsible, collapsed by default.'),
+    ),
+    '#default_value' => $settings['collapsible'],
   );
 
   return $form;
 }
 
+/**
+ * Validate callback.
+ */
 function _imagefield_crop_widget_resolution_validate($element, &$form_state) {
   $settings = $form_state['values']['instance']['widget']['settings'];
   // _image_field_resolution_validate() does most of the validation.
   if ($settings['enforce_ratio'] && empty($element['x']['#value'])) {
-    form_error($element, t('Target resolution must be defined as WIDTHxHEIGHT if resolution is to be enforced'));
+    form_error($element, t('Target size must be defined as WIDTHxHEIGHT if size is to be enforced'));
   }
 }
 
+/**
+ * Validate callback.
+ */
 function _imagefield_crop_widget_enforce_ratio_validate($element, &$form_state) {
   $settings = $form_state['values']['instance']['widget']['settings'];
   if (!empty($settings['resolution']) && empty($element['#value'])) {
-    backdrop_set_message(t('Output resolution is defined, but not enforced. Final images might be distroted'));
+    backdrop_set_message(t('Output size is defined, but not enforced. Final images might be distroted'));
   }
 }
 
+/**
+ * Validate callback.
+ */
 function _imagefield_crop_widget_enforce_minimum_validate($element, &$form_state) {
   $settings = $form_state['values']['instance']['widget']['settings'];
   list($rw, $rh) = !empty($settings['resolution']) ? explode('x', $settings['resolution']) : array(0, 0);
@@ -190,11 +209,13 @@ function _imagefield_crop_widget_enforce_minimum_validate($element, &$form_state
     (!is_numeric($rw) || (int) $rw != $rw || $rw <= 0 ||
     !is_numeric($rh) || (int) $rh != $rh || $rh <= 0)
   ) {
-    form_error($element, t('Target resolution must be defined as WIDTH_HEIGHT if minimum is to be enforced.'));
+    form_error($element, t('Target size must be defined as WIDTH_HEIGHT if minimum is to be enforced.'));
   }
 }
 
-
+/**
+ * Validate callback.
+ */
 function _imagefield_crop_widget_croparea_validate($element, &$form_state) {
   foreach (array('x', 'y') as $dimension) {
     $value = $element[$dimension]['#value'];
@@ -332,6 +353,9 @@ function imagefield_crop_widget_process($element, &$form_state, $form) {
   return $element;
 }
 
+/**
+ * Helper function.
+ */
 function _imagefield_add_cropinfo_fields($file = NULL) {
   $fid = empty($file) ? NULL : $file->fid;
   $defaults = imagefield_crop_file_settings($file);
@@ -355,7 +379,7 @@ function _imagefield_add_cropinfo_fields($file = NULL) {
 }
 
 /**
- * An element #process callback.
+ * Element #process callback.
  */
 function imagefield_crop_widget_preview_process($element, &$form_state, $form) {
   $file = $element['#file'];
@@ -397,9 +421,9 @@ function imagefield_crop_widget_preview_process($element, &$form_state, $form) {
 }
 
 /**
- * value callback
+ * Widget value callback.
  *
- * Registered by imagefield_crop_field_widget_form()
+ * @see imagefield_crop_field_widget_form().
  */
 function imagefield_crop_widget_value(&$element, &$input, $form_state) {
   // set $input['fid'] and that will be the value of the element
@@ -444,6 +468,11 @@ function imagefield_crop_widget_value(&$element, &$input, $form_state) {
   }
 }
 
+/**
+ * Widget delete callback.
+ * 
+ * @see imagefield_crop_field_widget_form().
+ */
 function imagefield_crop_widget_delete($form, &$form_state) {
   $parents = array_slice($form_state['triggering_element']['#array_parents'], 0, -1);
   $element = backdrop_array_get_nested_value($form_state['values'], $parents);
